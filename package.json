@@ -1,0 +1,19 @@
+{
+  "name": "sosata",
+  "version": "1.0.0",
+  "description": "MPD Client app, with 'komponist' as server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mutantcornholio/sosata.git"
+  },
+  "author": "cornholio <mutantcornholio@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mutantcornholio/sosata/issues"
+  },
+  "homepage": "https://github.com/mutantcornholio/sosata"
+}
