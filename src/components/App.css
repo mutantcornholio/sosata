@@ -1,0 +1,31 @@
+.App {
+  text-align: center;
+}
+
+.App-header {
+  background-color: #222;
+  height: 64px;
+  padding: 1px;
+  color: white;
+  z-index: 2;
+}
+
+.App-intro {
+  font-size: large;
+}
+
+.ViewSwitcher-container {
+  position: fixed;
+  height: 42px;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+}
+
+.Playback-container {
+  position: fixed;
+  height: 42px;
+  bottom: 42px;
+  left: 0;
+  z-index: 2;
+}

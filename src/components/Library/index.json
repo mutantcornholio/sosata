@@ -1,0 +1,92 @@
+{
+  "2009 - Lion Hat": {
+    "cover": null,
+    "name": "2009 - Lion Hat",
+    "path": "artists/Unicorn Kid/2009 - Lion Hat",
+    "type": "directory"
+  },
+  "2009 - We Had Eaten All The Animals, And Bartered all The Jewels (feat. Talk to Animals)": {
+    "cover": null,
+    "name": "2009 - We Had Eaten All The Animals, And Bartered all The Jewels (feat. Talk to Animals)",
+    "path": "artists/Unicorn Kid/2009 - We Had Eaten All The Animals, And Bartered all The Jewels (feat. Talk to Animals)",
+    "type": "directory"
+  },
+  "2009 - Wee Monsters": {
+    "cover": null,
+    "name": "2009 - Wee Monsters",
+    "path": "artists/Unicorn Kid/2009 - Wee Monsters",
+    "type": "directory"
+  },
+  "2010 - Sugarfest": {
+    "cover": null,
+    "name": "2010 - Sugarfest",
+    "path": "artists/Unicorn Kid/2010 - Sugarfest",
+    "type": "directory"
+  },
+  "2010 - Wild Life Remixes (2010)": {
+    "cover": null,
+    "name": "2010 - Wild Life Remixes (2010)",
+    "path": "artists/Unicorn Kid/2010 - Wild Life Remixes (2010)",
+    "type": "directory"
+  },
+  "2011 - Tidal Rave EP": {
+    "cover": null,
+    "name": "2011 - Tidal Rave EP",
+    "path": "artists/Unicorn Kid/2011 - Tidal Rave EP",
+    "type": "directory"
+  },
+  "2014 - Brain Wash": {
+    "cover": null,
+    "name": "2014 - Brain Wash",
+    "path": "artists/Unicorn Kid/2014 - Brain Wash",
+    "type": "directory"
+  },
+  "Dreamcatcher.mp3": {
+    "album": "The Sound of Dubstep",
+    "artist": "Unicorn Kid",
+    "checksum": "d77b1a46338ace17f3ffa0c64f632631",
+    "date": "2010",
+    "disc": "1",
+    "duration": 214.88,
+    "mtime": 1388241112,
+    "name": "14 - Dreamcatcher",
+    "path": "artists/Unicorn Kid/Dreamcatcher.mp3",
+    "size": 8781382,
+    "title": "Dreamcatcher",
+    "track": "14",
+    "type": "file",
+    "url": "artists/Unicorn%20Kid/Dreamcatcher.mp3"
+  },
+  "Wild life.mp3": {
+    "album": "Wild life - Single",
+    "artist": "Unicorn Kid",
+    "checksum": "0e3c30ec8ae7a47e20144e6a530962fd",
+    "date": "2010",
+    "disc": "0",
+    "duration": 215.96,
+    "mtime": 1388241108,
+    "name": "00 - Wild life",
+    "path": "artists/Unicorn Kid/Wild life.mp3",
+    "size": 6911885,
+    "title": "Wild life",
+    "track": "00",
+    "type": "file",
+    "url": "artists/Unicorn%20Kid/Wild%20life.mp3"
+  },
+  "y3sDz4xptt7I.128.mp3": {
+    "album": "",
+    "artist": "Unicorn Kid",
+    "checksum": "588e8dc80c5c9ad3f1cab69965661860",
+    "date": "",
+    "disc": "0",
+    "duration": 235.18,
+    "mtime": 1388241108,
+    "name": "00 - Pure Space",
+    "path": "artists/Unicorn Kid/y3sDz4xptt7I.128.mp3",
+    "size": 3764524,
+    "title": "Pure Space",
+    "track": "00",
+    "type": "file",
+    "url": "artists/Unicorn%20Kid/y3sDz4xptt7I.128.mp3"
+  }
+}

@@ -1,0 +1,8 @@
+.ViewSwitcher {
+    height: 42px;
+    padding: 3px;
+    width: 100vw;
+    background-color: #22313F;
+    color: white;
+    z-index: 2;
+}

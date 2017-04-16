@@ -1,0 +1,9 @@
+.lastfmConnector {
+    padding: 10px 20px;
+    text-align: left;
+}
+
+.lastfmConnector span {
+    margin-right: 15px;
+    line-height: 40px;
+}
