@@ -3,7 +3,6 @@
 - [x] Switching
 - [x] Showing active view
 
-
 **library view**:
 - [x] Fetching .json and drawing result
 - [x] Directories first
@@ -13,7 +12,6 @@
   - [x] Add
   - [ ] Add after current track
   - [ ] Add after current album
-
 
 **Playlist**:
 - [x] Drawing current playlist
@@ -47,6 +45,12 @@
 - [ ] Last.fm oauth
 
 **Last.fm:**
+- [ ] Auth
+  - [x] getToken
+  - [ ] signing requests
+  - [ ] getSession
+  - [ ] Re-fetching session on error
+  - [ ] Notifying user if token becomes invalid/expired
 - [ ] Scrobbling
   - [ ] Basic
   - [ ] Save queue to localstorage
@@ -62,4 +66,3 @@
 - [ ] Files/Directories
 - [ ] Add
 - [ ] Playback
- 

@@ -4,6 +4,10 @@ import $ from 'jquery';
 import mockjax from 'jquery-mockjax';
 mockjax($, window);
 
+$.mockjaxSettings.logging = 0;
+$.mockjaxSettings.responseTime = 0;
+
+
 describe('scrobbler', () => {
     let scrobbler;
 
@@ -24,6 +28,10 @@ describe('scrobbler', () => {
                 }
             }
         }
+    });
+
+    afterEach(() => {
+        $.mockjax.clear();
     });
 
     describe('.isConnected', () => {
@@ -54,6 +62,13 @@ describe('scrobbler', () => {
 
     describe('.connect', () => {
         it('should fetch web session', (done) => {
+            // FIXME: api_sig
+            $.mockjax({
+                url: `http://ws.audioscrobbler.com/2.0/?method=auth.getSession&api_key=${config.lastfm.apiKey}`,
+                dataType: 'json',
+                responseText: {track: fakeTracks[0]},
+                onAfterComplete: done
+            });
 
             done.fail();
         })
