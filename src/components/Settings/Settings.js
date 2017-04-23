@@ -7,15 +7,17 @@ import './Settings.css';
 
 class Settings extends Component {
     render() {
+        const isConnected = this.props.player.scrobbler.isConnected;
+
         return (
             <MuiThemeProvider>
             <div hidden={this.props.hidden} className="settingsView">
                 <div className="lastfmConnector">
                     <span>Last.fm</span>
                     <RaisedButton
-                        label="Not connected"
-                        primary={false}
-                        secondary={true}
+                        label={isConnected ? "Connected" : "Not connected"}
+                        secondary={!isConnected}
+                        disabled={isConnected}
                         style={{width: '180px'}}
                         onTouchTap={() => {
                             window.open(

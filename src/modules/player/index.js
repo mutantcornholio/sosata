@@ -2,6 +2,7 @@ import PubSub from 'pubsub-js';
 import config from '../../config.js'
 import * as Exceptions from './exceptions.js';
 import $ from 'jquery';
+import Scrobbler from '../scrobbler/scrobbler';
 
 export let player = {};
 
@@ -16,11 +17,13 @@ export class Player {
     _isPlaying = false;
     _playlist = [];
     _addQueue = [];
+    scrobbler;
 
     // custom audioElement is passed in tests
     constructor(audioElement) {
         this._audioElement = audioElement || document.createElement('AUDIO');
         this._audioElement.addEventListener('ended', this._handleTrackEnd.bind(this));
+        this.scrobbler = new Scrobbler();
 
         PubSub.subscribe(events.PLAYLIST_CHANGED, this._handlePlaylistChange);
     }

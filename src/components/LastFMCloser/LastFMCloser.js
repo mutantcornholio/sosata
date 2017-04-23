@@ -12,7 +12,7 @@ export let views = {
     settings: 'settings'
 };
 
-import {LOCAL_STORAGE_KEYS} from '../../modules/scrobbler/scrobbler';
+import {Scrobbler} from '../../modules/scrobbler/scrobbler';
 import {parseQuery} from '../../helpers/parseQuery';
 
 class LastFMCloser extends Component {
@@ -24,7 +24,8 @@ class LastFMCloser extends Component {
         );
 
         if (query.token && query.token.length) {
-            localStorage.setItem(LOCAL_STORAGE_KEYS.scrobblerSessionKey, query.token);
+            new Scrobbler().connect(query.token);
+
             return (
                 <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
                     <div style={{padding: '15px'}}>

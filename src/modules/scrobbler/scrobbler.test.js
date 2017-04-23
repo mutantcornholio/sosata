@@ -11,27 +11,9 @@ $.mockjaxSettings.responseTime = 0;
 describe('scrobbler', () => {
     let scrobbler;
 
-    // it('should renew api key on start', () => {
-    //     expect(false).toBe(true);
-    // });
-    beforeAll(() => {
-        if (!global.localStorage) {
-            global.localStorage = {
-                items: {
-
-                },
-                getItem(key) {
-                    return this.items[key];
-                },
-                setItem(key, value) {
-                    this.items[key] = value;
-                }
-            }
-        }
-    });
-
     afterEach(() => {
         $.mockjax.clear();
+        localStorage.removeItem(LOCAL_STORAGE_KEYS.scrobblerSessionKey);
     });
 
     describe('.isConnected', () => {
@@ -61,16 +43,59 @@ describe('scrobbler', () => {
     });
 
     describe('.connect', () => {
+        const response = {
+            session: {
+                key: 'd580d57f32848f5dcf574d1ce18d78b2'
+            }
+        };
+
         it('should fetch web session', (done) => {
-            // FIXME: api_sig
             $.mockjax({
-                url: `http://ws.audioscrobbler.com/2.0/?method=auth.getSession&api_key=${config.lastfm.apiKey}`,
+                url: `http://ws.audioscrobbler.com/2.0/*method=auth.getSession*`,
                 dataType: 'json',
-                responseText: {track: fakeTracks[0]},
+                responseText: response,
                 onAfterComplete: done
             });
 
-            done.fail();
-        })
+            scrobbler = new Scrobbler(config);
+
+            scrobbler.connect('qwertyuiopasdfghjkl');
+        });
+
+        it('should store key in localstorage', (done) => {
+            $.mockjax({
+                url: `http://ws.audioscrobbler.com/2.0/?*method=auth.getSession*`,
+                dataType: 'json',
+                responseText: response,
+                onAfterComplete: () => {
+                    const sessionKey = localStorage.getItem(LOCAL_STORAGE_KEYS.scrobblerSessionKey);
+
+                    expect(sessionKey).toEqual(response.session.key);
+
+                    done();
+                }
+            });
+
+            scrobbler = new Scrobbler(config);
+
+            scrobbler.connect('qwertyuiopasdfghjkl');
+        });
+
+        it('should set .isConnected to true', (done) => {
+            scrobbler = new Scrobbler(config);
+
+            $.mockjax({
+                url: `http://ws.audioscrobbler.com/2.0/?*method=auth.getSession*`,
+                dataType: 'json',
+                responseText: response,
+                onAfterComplete: () => {
+                    expect(scrobbler.isConnected).toEqual(true);
+
+                    done();
+                }
+            });
+
+            scrobbler.connect('qwertyuiopasdfghjkl');
+        });
     });
 });

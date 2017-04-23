@@ -1,6 +1,7 @@
 import config from '../../config.js'
 import md5 from 'md5'
 import querystring from 'querystring';
+import $ from 'jquery';
 
 export const LOCAL_STORAGE_KEYS = {
     scrobblerSessionKey: 'scrobblerSessionKey'
@@ -19,7 +20,15 @@ export class Scrobbler {
     }
 
     connect(token) {
+        $.ajax(`http://ws.audioscrobbler.com/2.0/?${Scrobbler._buildSignedRequest({
+            method: 'auth.getSession',
+            token,
+            api_key: config.lastfm.apiKey
+        })}`).done(result => {
+            localStorage.setItem(LOCAL_STORAGE_KEYS.scrobblerSessionKey, result.session.key);
 
+            this.isConnected = true;
+        });
     }
 
     static _buildSignedRequest(params) {
@@ -35,7 +44,10 @@ export class Scrobbler {
 
         const hash = md5(paramsString);
 
-        return querystring.stringify(Object.assign({api_sig: hash}, params));
+        return querystring.stringify(Object.assign({
+            api_sig: hash,
+            format: 'json'
+        }, params));
     }
 }
 

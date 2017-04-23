@@ -47,8 +47,8 @@
 **Last.fm:**
 - [ ] Auth
   - [x] getToken
-  - [ ] signing requests
-  - [ ] getSession
+  - [x] signing requests
+  - [x] getSession
   - [ ] Re-fetching session on error
   - [ ] Notifying user if token becomes invalid/expired
 - [ ] Scrobbling
