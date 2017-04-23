@@ -42,7 +42,7 @@
 - [ ] Amount of cached
 
 **Settings view:**
-- [ ] Last.fm oauth
+- [x] Last.fm oauth
 
 **Last.fm:**
 - [ ] Auth
@@ -53,7 +53,7 @@
   - [ ] Notifying user if token becomes invalid/expired
 - [ ] Scrobbling
   - [ ] Basic
-  - [ ] Save queue to localstorage
+  - [x] Save queue to localstorage
 - [ ] Love
   - [ ] Love / unlove track from playback panel
   - [ ] Check if track is favorite
