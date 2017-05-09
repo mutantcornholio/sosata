@@ -8,10 +8,13 @@ export const LOCAL_STORAGE_KEYS = {
 
 export const LAST_FM_API_PATH = 'http://ws.audioscrobbler.com/2.0';
 
+const SCROBBLE_RETRY_TIMEOUT = 60;
+
 export class Scrobbler {
     isConnected = false;
     _sessionKey;
     _scrobblingQueue = [];
+    _stagingScrobblingQueue = [];
 
     constructor() {
         this._sessionKey = localStorage.getItem(LOCAL_STORAGE_KEYS.scrobblerSessionKey);
@@ -62,15 +65,40 @@ export class Scrobbler {
     }
 
     _scrobble() {
-        if (this._scrobblingQueue.length > 0) {
+        if (this._scrobblingQueue.length > 0 ) {
+            if (this._stagingScrobblingQueue.length !== 0) {
+                return;
+            }
+
+            this._stagingScrobblingQueue = this._scrobblingQueue.splice(0, 50);
+
+            const scrobblingItems = {};
+
+            for (const [index, track] of this._stagingScrobblingQueue.entries()) {
+                scrobblingItems[`artist[${index}]`] = track.artist;
+                scrobblingItems[`track[${index}]`] = track.title;
+                scrobblingItems[`timestamp[${index}]`] = track.__timestamp;
+                track.album && (scrobblingItems[`album[${index}]`] = track.album);
+                track.duration && (scrobblingItems[`duration[${index}]`] = track.duration);
+            }
+
             fetch(`http://ws.audioscrobbler.com/2.0/?method=track.scrobble`, {
                 method: 'POST',
-                body: Scrobbler._buildSignedRequest({
+                body: Scrobbler._buildSignedRequest(Object.assign(scrobblingItems, {
                     method: 'track.scrobble',
                     api_key: config.lastfm.apiKey,
                     sk: this._sessionKey
-                })
-            });
+                }))
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        this._scrobblingQueue = this._stagingScrobblingQueue.concat(this._scrobblingQueue);
+                        this._stagingScrobblingQueue = [];
+                        setTimeout(() => {this._scrobble()}, SCROBBLE_RETRY_TIMEOUT * 1000);
+                    }
+
+                    this._updateScrobblingQueue();
+                });
         }
     }
 

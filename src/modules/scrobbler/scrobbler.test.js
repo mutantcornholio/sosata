@@ -1,4 +1,4 @@
-import {Scrobbler, LOCAL_STORAGE_KEYS} from './scrobbler';
+import {Scrobbler, LOCAL_STORAGE_KEYS, LAST_FM_API_PATH} from './scrobbler';
 import config from '../../config.js'
 import fetchMock from 'fetch-mock';
 
@@ -108,7 +108,7 @@ describe('scrobbler', () => {
 
         it('should fetch web session', (done) => {
             fetchMock.mock({
-                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=auth.getSession*',
+                matcher: `glob:${LAST_FM_API_PATH}/*method=auth.getSession*`,
                 response: () => {
                     done();
 
@@ -130,7 +130,7 @@ describe('scrobbler', () => {
 
         it('should store key in localstorage', (done) => {
             fetchMock.mock({
-                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=auth.getSession*',
+                matcher: `glob:${LAST_FM_API_PATH}/*method=auth.getSession*`,
                 response: {
                     session: {
                         key: 'd580d57f32848f5dcf574d1ce18d78b2'
@@ -154,7 +154,7 @@ describe('scrobbler', () => {
 
         it('should set .isConnected to true', (done) => {
             fetchMock.mock({
-                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=auth.getSession*',
+                matcher: `glob:${LAST_FM_API_PATH}/*method=auth.getSession*`,
                 response: {
                     session: {
                         key: 'd580d57f32848f5dcf574d1ce18d78b2'
@@ -177,12 +177,16 @@ describe('scrobbler', () => {
 
     function mockScrobble() {
         fetchMock.mock({
-            matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=track.scrobble*',
+            matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
             method: 'POST',
             response: {}
         }).catch(error => {
             throw error;
         });
+    }
+
+    function getScrobblingQueue() {
+        return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.scrobblingQueue));
     }
 
     // Whitebox unit testing here. Sorry.
@@ -194,7 +198,7 @@ describe('scrobbler', () => {
 
             scrobbler.scrobble(fakeTracks[0], unixTime());
 
-            expect(scrobbler._scrobblingQueue[0].checksum).toEqual(fakeTracks[0].checksum);
+            expect(getScrobblingQueue()[0].checksum).toEqual(fakeTracks[0].checksum);
         });
 
         it('should add timestamp to track at scrobbling queue', () => {
@@ -204,7 +208,7 @@ describe('scrobbler', () => {
 
             scrobbler.scrobble(fakeTracks[0], timestamp);
 
-            expect(scrobbler._scrobblingQueue[0].__timestamp).toEqual(timestamp);
+            expect(getScrobblingQueue()[0].__timestamp).toEqual(timestamp);
         });
 
         it('should toggle _scrobble method', () => {
@@ -220,7 +224,6 @@ describe('scrobbler', () => {
         });
 
         it('should save scrobbling queue to localStorage', () => {
-
             scrobbler = new Scrobbler(config);
 
             const timestamp = unixTime();
@@ -240,7 +243,7 @@ describe('scrobbler', () => {
 
         scrobbler.scrobble(fakeTracks[0], unixTime());
 
-        const oldQueueItem = scrobbler._scrobblingQueue[0];
+        const oldQueueItem = getScrobblingQueue()[0];
 
         const newScrobbler = new Scrobbler(config);
 
@@ -248,125 +251,189 @@ describe('scrobbler', () => {
     });
 
     describe('._scrobble', () => {
-        xit('should call scrobble api with track and timestamp', (done) => {
+        it('should call scrobble api with track and timestamp', (done) => {
             const timestamp = unixTime();
 
             fetchMock.mock({
-                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=track.scrobble*',
+                matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
                 name: 'scrobble',
                 method: 'POST',
-                response: url => {
-                    setTimeout(() => {
-                        try{
-                            const call = fetchMock.calls('scrobble')[0];
-                            const body = call[1].body;
+                response: {}
+            }).catch(unmatchedRequestFail(done.fail));
 
-                            expect(body).toContain(`artist[0]=${encodeURIComponent(fakeTracks[0].artist)}`);
-                            expect(body).toContain(`track[0]=${encodeURIComponent(fakeTracks[0].track)}`);
-                            expect(body).toContain(`timestamp[0]=${timestamp}`);
-                            done();
-                        } catch (e) {
-                            done.fail(e);
-                        }
-                    }, 0);
+            scrobbler = new Scrobbler(config);
+            scrobbler.scrobble(fakeTracks[0], timestamp);
 
-                    return {};
+            setTimeout(() => {
+                try{
+                    const call = fetchMock.calls('scrobble')[0];
+                    const body = call[1].body;
+
+                    expect(body).toContain(`artist[0]=${encodeURIComponent(fakeTracks[0].artist)}`);
+                    expect(body).toContain(`track[0]=${encodeURIComponent(fakeTracks[0].title)}`);
+                    expect(body).toContain(`timestamp[0]=${timestamp}`);
+                    done();
+                } catch (e) {
+                    done.fail(e);
+                }
+            }, 0);
+        });
+
+        it('should remove item from queue if scrobble succedes', (done) => {
+            const timestamp = unixTime();
+
+            fetchMock.mock({
+                matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
+                name: 'scrobble',
+                method: 'POST',
+                response: {}
+            }).catch(unmatchedRequestFail(done.fail));
+
+            scrobbler = new Scrobbler(config);
+            scrobbler.scrobble(fakeTracks[0], timestamp);
+
+            setTimeout(() => {
+                try {
+                    const call = fetchMock.calls('scrobble')[0];
+                    const body = call[1].body;
+
+                    const scrobblingQueue = JSON.parse(
+                        localStorage.getItem(LOCAL_STORAGE_KEYS.scrobblingQueue)
+                    );
+
+                    expect(scrobblingQueue.length).toEqual(0);
+                    done();
+                } catch (e) {
+                    done.fail(e);
+                }
+            }, 0);
+
+        });
+
+        it('should not remove items if scrobble fails', (done) => {
+            const timestamp = unixTime();
+
+            fetchMock.mock({
+                matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
+                name: 'scrobble',
+                method: 'POST',
+                response: {
+                    body: {
+                        error: 16
+                    },
+                    status: 500
                 }
             }).catch(unmatchedRequestFail(done.fail));
 
             scrobbler = new Scrobbler(config);
             scrobbler.scrobble(fakeTracks[0], timestamp);
-        });
 
-        xit('should remove item from queue if scrobble succedes', (done) => {
-            const timestamp = unixTime();
+            setTimeout(() => {
+                try{
+                    const call = fetchMock.calls('scrobble')[0];
+                    const body = call[1].body;
 
-            fetchMock.mock({
-                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=track.scrobble*',
-                name: 'scrobble',
-                method: 'POST',
-                response: url => {
-                    setTimeout(() => {
-                        try {
-                            const call = fetchMock.calls('scrobble')[0];
-                            const body = call[1].body;
-
-                            expect(scrobbler._scrobblingQueue.length).toEqual(0);
-                            done();
-                        } catch (e) {
-                            done.fail(e);
-                        }
-                    }, 0);
-
-                    return {};
+                    expect(getScrobblingQueue()[0].checksum).toEqual(fakeTracks[0].checksum);
+                    done();
+                } catch (e) {
+                    done.fail(e);
                 }
-            }).catch(unmatchedRequestFail(done.fail));
-
-            scrobbler = new Scrobbler(config);
-            scrobbler.scrobble(fakeTracks[0], timestamp);
+            }, 0);
         });
 
-        xit('should put items back if scrobble fails', (done) => {
-            const timestamp = unixTime();
+        it('should scrobble in batches of 50', (done) => {
+            let timestamp = unixTime();
 
             fetchMock.mock({
-                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=track.scrobble*',
+                matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
                 name: 'scrobble',
                 method: 'POST',
-                response: url => {
-                    setTimeout(() => {
-                        try{
-                            const call = fetchMock.calls('scrobble')[0];
-                            const body = call[1].body;
-
-                            expect(scrobbler._scrobblingQueue[0].checksum).toEqual(fakeTracks[0].checksum);
-                            done();
-                        } catch (e) {
-                            done.fail(e);
-                        }
-                    }, 0);
-
-                    return {};
-                }
-            }).catch(unmatchedRequestFail(done.fail));
-
-            scrobbler = new Scrobbler(config);
-            scrobbler.scrobble(fakeTracks[0], timestamp);
-        });
-
-        xit('should scrobble in batches of 50', (done) => {
-            const timestamp = unixTime();
-
-            fetchMock.mock({
-                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=track.scrobble*',
-                name: 'scrobble',
-                method: 'POST',
-                response: url => {
-                    setTimeout(() => {
-                        try {
-                            const call = fetchMock.calls('scrobble')[0];
-                            const body = call[1].body;
-
-                            expect(scrobbler._scrobblingQueue.length).toEqual(20);
-                            done();
-                        } catch (e) {
-                            done.fail(e);
-                        }
-                    }, 0);
-
-                    return {};
+                response: {
+                    body: {
+                        error: 16
+                    },
+                    status: 500
                 }
             }).catch(unmatchedRequestFail(done.fail));
 
             scrobbler = new Scrobbler(config);
 
-            for (let i = 0; i < 70; i++) {
-                scrobbler.scrobble(fakeTracks[0], timestamp + 1);
+            for (let i = 0; i < 69; i++) {
+                scrobbler.scrobble(fakeTracks[0], timestamp + i);
             }
-        });
 
-        xit('should retry scrobbling', (done) => {
-            done.fail();
+            setTimeout(() => {
+                fetchMock.restore();
+
+                fetchMock.mock({
+                    matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
+                    name: 'scrobble',
+                    method: 'POST',
+                    response: {}
+                }).catch(unmatchedRequestFail(done.fail));
+
+                setTimeout(() => {
+                    try {
+                        const call = fetchMock.calls('scrobble')[0];
+                        const body = call[1].body;
+
+                        const scrobblingQueue = JSON.parse(
+                            localStorage.getItem(LOCAL_STORAGE_KEYS.scrobblingQueue)
+                        );
+
+                        expect(body).toContain(`timestamp[0]=${timestamp}`);
+                        expect(body).toContain(`timestamp[49]=${timestamp + 49}`);
+
+                        expect(scrobblingQueue.length).toEqual(20);
+                        done();
+                    } catch (e) {
+                        done.fail(e);
+                    }
+                }, 0);
+
+                scrobbler.scrobble(fakeTracks[0], timestamp + 69);
+            });
+        }, 0);
+
+        it('should retry scrobbling', (done) => {
+            let failedOnce = false;
+            jest.useFakeTimers();
+
+            fetchMock.mock({
+                matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
+                name: 'scrobble',
+                method: 'POST',
+                response: () => {
+                    if (!failedOnce) {
+                        failedOnce = true;
+
+                        return {
+                            body: {
+                                error: 16
+                            },
+                            status: 500
+                        }
+                    }
+
+                    return {};
+                }
+            }).catch(unmatchedRequestFail(done.fail));
+
+            scrobbler = new Scrobbler(config);
+            scrobbler.scrobble(fakeTracks[0], unixTime());
+
+            // Jest timers are somewhat fucked up.
+            // I need async operation + mocked timers,
+            // so this is what I came up with
+            Promise.resolve().then(() => {
+                jest.runAllTimers();
+                try {
+                    expect(fetchMock.calls('scrobble').length).toEqual(2);
+                    done();
+                } catch (e) {
+                    done.fail(e);
+                }
+            });
         });
     });
 });
