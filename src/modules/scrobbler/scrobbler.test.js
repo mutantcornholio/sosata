@@ -1,11 +1,6 @@
 import {Scrobbler, LOCAL_STORAGE_KEYS} from './scrobbler';
 import config from '../../config.js'
-import $ from 'jquery';
-import mockjax from 'jquery-mockjax';
-mockjax($, window);
-
-$.mockjaxSettings.logging = 0;
-$.mockjaxSettings.responseTime = 0;
+import fetchMock from 'fetch-mock';
 
 const fakeTracks = [{
     "album": "erroor",
@@ -56,32 +51,24 @@ const fakeTracks = [{
 
 describe('scrobbler', () => {
     let scrobbler;
-    let ajaxMockFail;
 
-    function mockAllAjax() {
-        $.mockjax({
-            url: `http://ws.audioscrobbler.com/*`,
-            status: 400,
-            responseText: 'mocking all requests to last.fm',
-            onAfterError: () => {
-                if (typeof ajaxMockFail === 'function') {
-                    ajaxMockFail('Invalid/unmocked request to last.fm');
-                }
-            }
-        });
+    function unmatchedRequestFail(doneFail) {
+        return function (url) {
+            doneFail(`Invalid/unmocked request: ${url}`);
+
+            return {
+                status: 400,
+                body: 'Invalid/unmocked request'
+            };
+        };
     }
 
-    function mockScrobble() {
-        $.mockjax({
-            url: `http://ws.audioscrobbler.com/2.0/?method=track.scrobble`,
-            type: 'POST'
-        });
-    }
-
-    beforeEach(mockAllAjax);
+    beforeAll(() => {
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 500;
+    });
 
     afterEach(() => {
-        $.mockjax.clear();
+        fetchMock.restore();
         localStorage.removeItem(LOCAL_STORAGE_KEYS.scrobblerSessionKey);
         localStorage.removeItem(LOCAL_STORAGE_KEYS.scrobblingQueue);
     });
@@ -120,16 +107,21 @@ describe('scrobbler', () => {
         };
 
         it('should fetch web session', (done) => {
-            ajaxMockFail = done.fail;
+            fetchMock.mock({
+                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=auth.getSession*',
+                response: () => {
+                    done();
 
-            $.mockjax.clear();
-            $.mockjax({
-                url: `http://ws.audioscrobbler.com/2.0/*method=auth.getSession*`,
-                dataType: 'json',
-                responseText: response,
-                onAfterComplete: done
-            });
-            mockAllAjax();
+                    return {
+                        body: {
+                            session: {
+                                key: 'd580d57f32848f5dcf574d1ce18d78b2'
+                            }
+                        },
+                        sendAsJson: true
+                    }
+                }
+            }).catch(unmatchedRequestFail(done.fail));
 
             scrobbler = new Scrobbler(config);
 
@@ -137,57 +129,65 @@ describe('scrobbler', () => {
         });
 
         it('should store key in localstorage', (done) => {
-            ajaxMockFail = done.fail;
-
-            $.mockjax.clear();
-            $.mockjax({
-                url: `http://ws.audioscrobbler.com/2.0/?*method=auth.getSession*`,
-                dataType: 'json',
-                responseText: response,
-                onAfterComplete: () => {
-                    const sessionKey = localStorage.getItem(LOCAL_STORAGE_KEYS.scrobblerSessionKey);
-
-                    expect(sessionKey).toEqual(response.session.key);
-
-                    done();
+            fetchMock.mock({
+                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=auth.getSession*',
+                response: {
+                    session: {
+                        key: 'd580d57f32848f5dcf574d1ce18d78b2'
+                    }
                 }
-            });
-            mockAllAjax();
+            }).catch(unmatchedRequestFail(done.fail));
 
             scrobbler = new Scrobbler(config);
 
-            scrobbler.connect('qwertyuiopasdfghjkl');
+            scrobbler.connect('qwertyuiopasdfghjkl').then(() => {
+                const sessionKey = localStorage.getItem(LOCAL_STORAGE_KEYS.scrobblerSessionKey);
+
+                try {
+                    expect(sessionKey).toEqual(response.session.key);
+                    done();
+                } catch (e) {
+                    done.fail(e);
+                }
+            });
         });
 
         it('should set .isConnected to true', (done) => {
-            ajaxMockFail = done.fail;
+            fetchMock.mock({
+                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=auth.getSession*',
+                response: {
+                    session: {
+                        key: 'd580d57f32848f5dcf574d1ce18d78b2'
+                    }
+                }
+            }).catch(unmatchedRequestFail(done.fail));
 
             scrobbler = new Scrobbler(config);
 
-            $.mockjax.clear();
-            $.mockjax({
-                url: `http://ws.audioscrobbler.com/2.0/?*method=auth.getSession*`,
-                dataType: 'json',
-                responseText: response,
-                onAfterComplete: () => {
+            scrobbler.connect('qwertyuiopasdfghjkl').then(() => {
+                try {
                     expect(scrobbler.isConnected).toEqual(true);
-
                     done();
+                } catch (e) {
+                    done.fail(e);
                 }
             });
-            mockAllAjax();
-
-            scrobbler.connect('qwertyuiopasdfghjkl');
         });
     });
 
+    function mockScrobble() {
+        fetchMock.mock({
+            matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=track.scrobble*',
+            method: 'POST',
+            response: {}
+        }).catch(error => {
+            throw error;
+        });
+    }
+
     // Whitebox unit testing here. Sorry.
     describe('.scrobble', () => {
-        beforeEach(() => {
-            $.mockjax.clear();
-            mockScrobble();
-            mockAllAjax();
-        });
+        beforeEach(mockScrobble);
 
         it('should add track to scrobbling queue', () => {
             scrobbler = new Scrobbler(config);
@@ -234,9 +234,7 @@ describe('scrobbler', () => {
     });
 
     it('should load scrobbling queue from localStorage', () => {
-        $.mockjax.clear();
         mockScrobble();
-        mockAllAjax();
 
         scrobbler = new Scrobbler(config);
 
@@ -250,38 +248,123 @@ describe('scrobbler', () => {
     });
 
     describe('._scrobble', () => {
-        it('should call scrobble api with track and timestamp', (done) => {
-            ajaxMockFail = done.fail;
-
+        xit('should call scrobble api with track and timestamp', (done) => {
             const timestamp = unixTime();
 
-            $.mockjax.clear();
-            $.mockjax({
-                url: `http://ws.audioscrobbler.com/2.0/?method=track.scrobble`,
-                type: 'POST',
-                onAfterComplete: () => {
-                    const call = $.mockjax.mockedAjaxCalls()
-                        .filter(call => call.url.indexOf('method=track.scrobble') !== -1)[0];
+            fetchMock.mock({
+                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=track.scrobble*',
+                name: 'scrobble',
+                method: 'POST',
+                response: url => {
+                    setTimeout(() => {
+                        try{
+                            const call = fetchMock.calls('scrobble')[0];
+                            const body = call[1].body;
 
-                    try{
-                        expect(call.data).toContain(encodeURIComponent(fakeTracks[0].artist));
-                        expect(call.data).toContain(encodeURIComponent(fakeTracks[0].track));
-                        expect(call.data).toContain(timestamp);
-                        done();
-                    } catch (e) {
-                        done.fail(e);
-                    }
+                            expect(body).toContain(`artist[0]=${encodeURIComponent(fakeTracks[0].artist)}`);
+                            expect(body).toContain(`track[0]=${encodeURIComponent(fakeTracks[0].track)}`);
+                            expect(body).toContain(`timestamp[0]=${timestamp}`);
+                            done();
+                        } catch (e) {
+                            done.fail(e);
+                        }
+                    }, 0);
+
+                    return {};
                 }
-            });
-            mockAllAjax();
+            }).catch(unmatchedRequestFail(done.fail));
 
             scrobbler = new Scrobbler(config);
             scrobbler.scrobble(fakeTracks[0], timestamp);
         });
 
         xit('should remove item from queue if scrobble succedes', (done) => {
-            done.fail();
+            const timestamp = unixTime();
+
+            fetchMock.mock({
+                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=track.scrobble*',
+                name: 'scrobble',
+                method: 'POST',
+                response: url => {
+                    setTimeout(() => {
+                        try {
+                            const call = fetchMock.calls('scrobble')[0];
+                            const body = call[1].body;
+
+                            expect(scrobbler._scrobblingQueue.length).toEqual(0);
+                            done();
+                        } catch (e) {
+                            done.fail(e);
+                        }
+                    }, 0);
+
+                    return {};
+                }
+            }).catch(unmatchedRequestFail(done.fail));
+
+            scrobbler = new Scrobbler(config);
+            scrobbler.scrobble(fakeTracks[0], timestamp);
         });
+
+        xit('should put items back if scrobble fails', (done) => {
+            const timestamp = unixTime();
+
+            fetchMock.mock({
+                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=track.scrobble*',
+                name: 'scrobble',
+                method: 'POST',
+                response: url => {
+                    setTimeout(() => {
+                        try{
+                            const call = fetchMock.calls('scrobble')[0];
+                            const body = call[1].body;
+
+                            expect(scrobbler._scrobblingQueue[0].checksum).toEqual(fakeTracks[0].checksum);
+                            done();
+                        } catch (e) {
+                            done.fail(e);
+                        }
+                    }, 0);
+
+                    return {};
+                }
+            }).catch(unmatchedRequestFail(done.fail));
+
+            scrobbler = new Scrobbler(config);
+            scrobbler.scrobble(fakeTracks[0], timestamp);
+        });
+
+        xit('should scrobble in batches of 50', (done) => {
+            const timestamp = unixTime();
+
+            fetchMock.mock({
+                matcher: 'glob:http://ws.audioscrobbler.com/2.0/*method=track.scrobble*',
+                name: 'scrobble',
+                method: 'POST',
+                response: url => {
+                    setTimeout(() => {
+                        try {
+                            const call = fetchMock.calls('scrobble')[0];
+                            const body = call[1].body;
+
+                            expect(scrobbler._scrobblingQueue.length).toEqual(20);
+                            done();
+                        } catch (e) {
+                            done.fail(e);
+                        }
+                    }, 0);
+
+                    return {};
+                }
+            }).catch(unmatchedRequestFail(done.fail));
+
+            scrobbler = new Scrobbler(config);
+
+            for (let i = 0; i < 70; i++) {
+                scrobbler.scrobble(fakeTracks[0], timestamp + 1);
+            }
+        });
+
         xit('should retry scrobbling', (done) => {
             done.fail();
         });

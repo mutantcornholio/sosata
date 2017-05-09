@@ -1,12 +1,12 @@
 import config from '../../config.js'
 import md5 from 'md5'
-import querystring from 'querystring';
-import $ from 'jquery';
 
 export const LOCAL_STORAGE_KEYS = {
     scrobblerSessionKey: 'scrobblerSessionKey',
     scrobblingQueue: 'scrobblingQueue',
 };
+
+export const LAST_FM_API_PATH = 'http://ws.audioscrobbler.com/2.0';
 
 export class Scrobbler {
     isConnected = false;
@@ -32,31 +32,40 @@ export class Scrobbler {
     }
 
     connect(token) {
-        $.ajax(`http://ws.audioscrobbler.com/2.0/?${Scrobbler._buildSignedRequest({
-            method: 'auth.getSession',
-            token,
-            api_key: config.lastfm.apiKey
-        })}`).done(result => {
-            this._sessionKey = result.session.key;
-            localStorage.setItem(LOCAL_STORAGE_KEYS.scrobblerSessionKey, this._sessionKey);
+        return new Promise((resolve, reject) => {
+            fetch(`${LAST_FM_API_PATH}/?${Scrobbler._buildSignedRequest({
+                method: 'auth.getSession',
+                token,
+                api_key: config.lastfm.apiKey
+            })}`)
+                .then(result => result.json())
+                .then(result => {
+                    this._sessionKey = result.session.key;
+                    localStorage.setItem(LOCAL_STORAGE_KEYS.scrobblerSessionKey, this._sessionKey);
 
-            this.isConnected = true;
+                    this.isConnected = true;
+                    resolve();
+                }).catch(reject);
         });
     }
 
     scrobble(track, timestamp) {
         this._scrobblingQueue.push(Object.assign({__timestamp: timestamp}, track));
 
-        localStorage.setItem(LOCAL_STORAGE_KEYS.scrobblingQueue, JSON.stringify(this._scrobblingQueue));
+        this._updateScrobblingQueue();
 
         this._scrobble();
     }
 
+    _updateScrobblingQueue() {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.scrobblingQueue, JSON.stringify(this._scrobblingQueue));
+    }
+
     _scrobble() {
         if (this._scrobblingQueue.length > 0) {
-            $.ajax(`http://ws.audioscrobbler.com/2.0/?method=track.scrobble`, {
+            fetch(`http://ws.audioscrobbler.com/2.0/?method=track.scrobble`, {
                 method: 'POST',
-                data: Scrobbler._buildSignedRequest({
+                body: Scrobbler._buildSignedRequest({
                     method: 'track.scrobble',
                     api_key: config.lastfm.apiKey,
                     sk: this._sessionKey
