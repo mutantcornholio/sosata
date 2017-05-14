@@ -21,6 +21,10 @@ class Library extends Component {
         files: []
     };
 
+    _shouldAddUpLink() {
+        return decodeURIComponent(this.state.currentPath) !== '/';
+    }
+
     componentDidMount() {
         this.setPath('/');
     }
@@ -59,6 +63,10 @@ class Library extends Component {
         let itemsToAdd = [];
 
         for (let row of this.state.selectedRows) {
+            if (this._shouldAddUpLink()) {
+                row--;
+            }
+
             itemsToAdd.push(this.state.items[row]);
         }
 
@@ -76,7 +84,7 @@ class Library extends Component {
 
         let currentPath = decodeURIComponent(this.state.currentPath);
 
-        if (currentPath !== '/') {
+        if (this._shouldAddUpLink()) {
             let upperPath = path.resolve(currentPath + '/../');
             let url = encodeURIComponent(upperPath);
 
