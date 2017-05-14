@@ -3,14 +3,10 @@
  * One day it'll become a complete fork
  */
 
-// Dependencies
 import EventTarget from './event-target';
 
-import musicMetaData from 'musicmetadata';
-
-// Public
-class Audio extends EventTarget {
-    constructor(url) {
+class AbstractAudio extends EventTarget {
+    constructor(url, {timersUsed}) {
         super();
 
         // similar loadstart OSX Google Chrome 46
@@ -19,6 +15,7 @@ class Audio extends EventTarget {
         this.src = url || '';
         this.loop = false;
         this.autoplay = false;
+        this._timersUsed = Boolean(timersUsed);
 
         this.paused = true;
         this.ended = false;
@@ -74,7 +71,10 @@ class Audio extends EventTarget {
         this._previous = Date.now();
 
         this._pause();
-        //this._timeupdateId = setInterval(this._timeupdate, 100);
+
+        if (this._timersUsed) {
+            this._timeupdateId = setInterval(this._timeupdate, 100);
+        }
 
         this.emit('play');
     }
@@ -88,7 +88,9 @@ class Audio extends EventTarget {
     }
 
     _pause() {
-        //clearInterval(this._timeupdateId);
+        if (this._timersUsed) {
+            clearInterval(this._timeupdateId);
+        }
     }
 
     _timeupdate() {
@@ -108,6 +110,18 @@ class Audio extends EventTarget {
             this.pause();
             this.emit('ended');
         }
+    }
+}
+
+export class Audio extends AbstractAudio {
+    constructor(url) {
+        super(url, {timersUsed: false})
+    }
+}
+
+export class TimedAudio extends AbstractAudio {
+    constructor(url) {
+        super(url, {timersUsed: true})
     }
 }
 

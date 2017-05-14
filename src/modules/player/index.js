@@ -8,7 +8,8 @@ export let player = {};
 
 export const events = {
     PLAYLIST_CHANGED: 'PLAYLIST_CHANGED',
-    PLAYBACK_CHANGED: 'PLAYBACK_CHANGED'
+    PLAYBACK_CHANGED: 'PLAYBACK_CHANGED',
+    PLAYBACK_POSITION_CHANGED: 'PLAYBACK_POSITION_CHANGED'
 };
 
 export class Player {

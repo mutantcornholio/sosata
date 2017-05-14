@@ -1,5 +1,5 @@
 import {Player, events} from './';
-import Audio from '../../helpers/mock-audio-element'
+import {Audio, TimedAudio} from '../../helpers/mock-audio-element'
 import PubSub from 'pubsub-js';
 import config from '../../config.js'
 import * as Exceptions from './exceptions.js';
@@ -82,9 +82,6 @@ beforeAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 500;
 });
 
-beforeEach(() => {
-    fakeAudio = new Audio();
-});
 
 let testSubscription = false;
 afterEach(() => {
@@ -94,15 +91,22 @@ afterEach(() => {
 });
 
 describe('Player', () => {
-    it('should init with empty playlist', () => {
-        let player = new Player(fakeAudio);
-        expect(player.getPlaylist()).toEqual([]);
+    describe('constructor', () => {
+        beforeEach(() => {
+            fakeAudio = new Audio();
+        });
+
+        it('should create player with empty playlist', () => {
+            let player = new Player(fakeAudio);
+            expect(player.getPlaylist()).toEqual([]);
+        });
     });
 
     describe('.addToPlaylist', () => {
         let player;
 
         beforeEach(() => {
+            fakeAudio = new Audio();
             player = new Player(fakeAudio);
         });
 
@@ -221,6 +225,7 @@ describe('Player', () => {
         let player;
 
         beforeEach(() => {
+            fakeAudio = new Audio();
             player = new Player(fakeAudio);
             player.addToPlaylist([fakeTracks[0]]);
         });
@@ -257,6 +262,7 @@ describe('Player', () => {
         let player;
 
         beforeEach(() => {
+            fakeAudio = new Audio();
             player = new Player(fakeAudio);
             player.addToPlaylist([fakeTracks[0], fakeTracks[1], fakeTracks[2]]);
         });
@@ -292,6 +298,7 @@ describe('Player', () => {
         let player;
 
         beforeEach(() => {
+            fakeAudio = new Audio();
             player = new Player(fakeAudio);
             player.addToPlaylist([fakeTracks[0], fakeTracks[1], fakeTracks[2]]);
         });
@@ -323,6 +330,7 @@ describe('Player', () => {
         let player;
 
         beforeEach(() => {
+            fakeAudio = new Audio();
             player = new Player(fakeAudio);
             player.addToPlaylist([fakeTracks[0], fakeTracks[1], fakeTracks[2]]);
         });
@@ -354,6 +362,7 @@ describe('Player', () => {
         let player;
 
         beforeEach(() => {
+            fakeAudio = new Audio();
             player = new Player(fakeAudio);
             player.addToPlaylist([fakeTracks[0], fakeTracks[1], fakeTracks[2]]);
         });
@@ -372,5 +381,19 @@ describe('Player', () => {
                 }
             }, 1);
         });
+    });
+
+    describe('scrobbling', () => {
+        let player;
+
+        beforeEach(() => {
+            fakeAudio = new TimedAudio();
+            player = new Player(fakeAudio);
+            player.addToPlaylist([fakeTracks[0]]);
+        });
+
+        it('should call scrobble after half of track has been played', (done) => {
+            done.fail();
+        })
     });
 });
