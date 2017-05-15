@@ -40,17 +40,19 @@ class App extends Component {
                         <h2>Player</h2>
                     </div>
 
-                    <Library
-                        player={this.player}
-                        hidden={view !== views.library}/>
+                    <div className="App-view">
+                        <Library
+                            player={this.player}
+                            hidden={view !== views.library}/>
 
-                    <Playlist
-                        player={this.player}
-                        hidden={view !== views.playlist}/>
+                        <Playlist
+                            player={this.player}
+                            hidden={view !== views.playlist}/>
 
-                    <Settings
-                        player={this.player}
-                        hidden={view !== views.settings}/>
+                        <Settings
+                            player={this.player}
+                            hidden={view !== views.settings}/>
+                    </div>
 
                     <div className="Playback-container">
                         <Playback player={this.player} />

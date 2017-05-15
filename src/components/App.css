@@ -7,7 +7,18 @@
   height: 64px;
   padding: 1px;
   color: white;
+  position: fixed;
+  width: 100vw;
+  top: 0;
+  left: 0;
   z-index: 2;
+}
+
+.App-view {
+  position: fixed;
+  height: calc(100vh - 148px);
+  top: 64px;
+  overflow-y: scroll;
 }
 
 .App-intro {
