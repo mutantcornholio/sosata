@@ -79,10 +79,10 @@ export class Scrobbler {
                 scrobblingItems[`track[${index}]`] = track.title;
                 scrobblingItems[`timestamp[${index}]`] = track.__timestamp;
                 track.album && (scrobblingItems[`album[${index}]`] = track.album);
-                track.duration && (scrobblingItems[`duration[${index}]`] = track.duration);
+                track.duration && (scrobblingItems[`duration[${index}]`] = Number(track.duration).toFixed());
             }
 
-            fetch(`http://ws.audioscrobbler.com/2.0/?method=track.scrobble`, {
+            fetch(`http://ws.audioscrobbler.com/2.0/`, {
                 method: 'POST',
                 body: Scrobbler._buildSignedRequest(Object.assign(scrobblingItems, {
                     method: 'track.scrobble',

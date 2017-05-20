@@ -386,14 +386,27 @@ describe('Player', () => {
     describe('scrobbling', () => {
         let player;
 
+        beforeAll(jest.useFakeTimers);
+
         beforeEach(() => {
-            fakeAudio = new TimedAudio();
+            fakeAudio = new Audio();
             player = new Player(fakeAudio);
+
             player.addToPlaylist([fakeTracks[0]]);
         });
 
-        it('should call scrobble after half of track has been played', (done) => {
-            done.fail();
+        it('should call scrobble after half of track has been played', () => {
+            spyOn(player.scrobbler, 'scrobble');
+
+            player.play();
+
+            jest.runTimersToTime(200 * 1000);
+
+            expect(player.scrobbler.scrobble).not.toHaveBeenCalled();
+
+            jest.runTimersToTime(215 * 1000);
+
+            expect(player.scrobbler.scrobble).toHaveBeenCalledWith(fakeTracks[0], jasmine.anything());
         })
     });
 });

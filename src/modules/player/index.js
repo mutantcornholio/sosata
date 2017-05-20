@@ -18,6 +18,9 @@ export class Player {
     _isPlaying = false;
     _playlist = [];
     _addQueue = [];
+    _secondsTrackListened = 0; // Not affected by seeking. Needed for scrobbling
+    _currentTrackScrobbled = false;
+
     scrobbler;
 
     // custom audioElement is passed in tests
@@ -27,12 +30,17 @@ export class Player {
         this.scrobbler = new Scrobbler();
 
         PubSub.subscribe(events.PLAYLIST_CHANGED, this._handlePlaylistChange);
+
+        setInterval(this._playtick, 1000);
     }
 
     _changeTrack(trackNo) {
         this._currentTrackId = trackNo;
         this._audioElement.src = `http://${config.host}/music/${this._playlist[trackNo].url}`;
         this._audioElement.load();
+
+        this._currentTrackScrobbled = false;
+        this._secondsTrackListened = 0;
     }
 
     _handlePlaylistChange = () => {
@@ -118,6 +126,23 @@ export class Player {
             });
     }
 
+    _playtick = () => {
+        if (!this._isPlaying) {
+            return;
+        }
+
+        PubSub.publish(events.PLAYBACK_POSITION_CHANGED);
+        this._secondsTrackListened++;
+
+        const halfDuration = this._playlist[this._currentTrackId].duration / 2;
+
+
+        if (!this._currentTrackScrobbled && this._secondsTrackListened > halfDuration) {
+            this.scrobbler.scrobble(this._playlist[this._currentTrackId], unixTime());
+            this._currentTrackScrobbled = true;
+        }
+    };
+
     play() {
         if (this._isPlaying) {
             return;
@@ -191,3 +216,7 @@ export class Player {
 }
 
 export default Player;
+
+function unixTime() {
+    return ((new Date()).getTime()/1000).toFixed();
+}

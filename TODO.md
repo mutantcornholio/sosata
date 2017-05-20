@@ -51,9 +51,10 @@
   - [x] getSession
   - [ ] Re-fetching session on error
   - [ ] Notifying user if token becomes invalid/expired
-- [ ] Scrobbling
-  - [ ] Basic
+- [x] Scrobbling
+  - [x] Basic
   - [x] Save queue to localstorage
+- [ ] Now playing
 - [ ] Love
   - [ ] Love / unlove track from playback panel
   - [ ] Check if track is favorite

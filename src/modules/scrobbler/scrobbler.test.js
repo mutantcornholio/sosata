@@ -177,12 +177,17 @@ describe('scrobbler', () => {
 
     function mockScrobble() {
         fetchMock.mock({
-            matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
+            matcher: scrobblerMatcher,
             method: 'POST',
             response: {}
         }).catch(error => {
             throw error;
         });
+    }
+
+
+    function scrobblerMatcher(_, options) {
+        return options.body.indexOf('method=track.scrobble') !== -1;
     }
 
     function getScrobblingQueue() {
@@ -255,7 +260,7 @@ describe('scrobbler', () => {
             const timestamp = unixTime();
 
             fetchMock.mock({
-                matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
+                matcher: scrobblerMatcher,
                 name: 'scrobble',
                 method: 'POST',
                 response: {}
@@ -283,7 +288,7 @@ describe('scrobbler', () => {
             const timestamp = unixTime();
 
             fetchMock.mock({
-                matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
+                matcher: scrobblerMatcher,
                 name: 'scrobble',
                 method: 'POST',
                 response: {}
@@ -314,7 +319,7 @@ describe('scrobbler', () => {
             const timestamp = unixTime();
 
             fetchMock.mock({
-                matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
+                matcher: scrobblerMatcher,
                 name: 'scrobble',
                 method: 'POST',
                 response: {
@@ -345,7 +350,7 @@ describe('scrobbler', () => {
             let timestamp = unixTime();
 
             fetchMock.mock({
-                matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
+                matcher: scrobblerMatcher,
                 name: 'scrobble',
                 method: 'POST',
                 response: {
@@ -366,7 +371,7 @@ describe('scrobbler', () => {
                 fetchMock.restore();
 
                 fetchMock.mock({
-                    matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
+                    matcher: `glob:${LAST_FM_API_PATH}/`,
                     name: 'scrobble',
                     method: 'POST',
                     response: {}
@@ -400,10 +405,11 @@ describe('scrobbler', () => {
             jest.useFakeTimers();
 
             fetchMock.mock({
-                matcher: `glob:${LAST_FM_API_PATH}/*method=track.scrobble*`,
+                matcher: scrobblerMatcher,
                 name: 'scrobble',
                 method: 'POST',
-                response: () => {
+                response: (options) => {
+                    console.log(options);
                     if (!failedOnce) {
                         failedOnce = true;
 
