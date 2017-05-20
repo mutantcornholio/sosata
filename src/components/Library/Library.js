@@ -12,6 +12,8 @@ import MenuItem from 'material-ui/MenuItem';
 
 
 class Library extends Component {
+    renderingItems = [];
+
     state = {
         loading: true,
         currentPath: '/',
@@ -26,13 +28,23 @@ class Library extends Component {
     }
 
     componentDidMount() {
-        this.setPath('/');
+        if (this.props.match.params.deeperPath) {
+            this.setPath('/' + this.props.match.params.deeperPath);
+        } else {
+            this.setPath('/');
+        }
     }
 
-    setPath(path) {
+    setPath(newPath) {
+        const newpath = path.resolve(`/view/library/${newPath.replace(/%2F/g, '/')}`);
+
+        if (this.props.match.url !== newpath) {
+            this.props.history.push(newpath);
+        }
+
         this.setState({loading: true});
 
-        $.ajax(`http://${config.host}/library${path}/index.json`).done((data) => {
+        $.ajax(`http://${config.host}/library${newPath}/index.json`).done((data) => {
             let directories = [];
             let files = [];
 
@@ -50,7 +62,7 @@ class Library extends Component {
 
             this.setState({
                 loading: false,
-                currentPath: path,
+                currentPath: newPath,
                 items: directories.concat(files),
                 selectedRows: [],
                 directories,
@@ -73,6 +85,20 @@ class Library extends Component {
         this.props.player.addToPlaylist(itemsToAdd);
     };
 
+    addDoubleClickableRow({onDoubleTap, title, url}) {
+        let result = (
+            <DoubleClickableTableRow
+                key={this.renderingItems.length + 1}
+                style={{height: '32px'}}
+                onDoubleTap={onDoubleTap ? onDoubleTap : () => {this.setPath(url)}}
+                selected={this.state.selectedRows.indexOf(this.renderingItems.length) !== -1}>
+                    <TableRowColumn style={{height: '32px'}}>{title}</TableRowColumn>
+            </DoubleClickableTableRow>
+        );
+
+        this.renderingItems.push(result);
+    }
+
     render() {
         if (this.state.loading) {
             return (
@@ -80,48 +106,34 @@ class Library extends Component {
             )
         }
 
-        let items = [];
-
         let currentPath = decodeURIComponent(this.state.currentPath);
+
+        this.renderingItems = [];
 
         if (this._shouldAddUpLink()) {
             let upperPath = path.resolve(currentPath + '/../');
             let url = encodeURIComponent(upperPath);
 
-            items.push(
-                <DoubleClickableTableRow
-                    key={url}
-                    style={{height: '32px'}}
-                    onDoubleTap={() => {this.setPath(url)}}>
-                    <TableRowColumn style={{height: '32px'}}>..</TableRowColumn>
-                </DoubleClickableTableRow>
-            );
+            this.addDoubleClickableRow({
+                url,
+                title: '..',
+            });
         }
 
         for (let item of this.state.directories) {
             let url = '/' + encodeURIComponent(item.path);
 
-            items.push(
-                <DoubleClickableTableRow
-                    key={url}
-                    style={{height: '32px'}}
-                    onDoubleTap={() => {this.setPath(url)}}
-                    selected={this.state.selectedRows.indexOf(items.length) !== -1}>
-                    <TableRowColumn style={{height: '32px'}}>{item.name}</TableRowColumn>
-                </DoubleClickableTableRow>
-            );
+            this.addDoubleClickableRow({
+                url,
+                title: item.name,
+            });
         }
 
         for (let item of this.state.files) {
-            items.push(
-                <DoubleClickableTableRow
-                    key={item.checksum}
-                    style={{height: '32px'}}
-                    onDoubleTap={() => {this.props.player.addToPlaylist([item]);}}
-                        selected={this.state.selectedRows.indexOf(items.length) !== -1}>
-                    <TableRowColumn style={{height: '32px'}}>{item.title}</TableRowColumn>
-                </DoubleClickableTableRow>
-            )
+            this.addDoubleClickableRow({
+                onDoubleTap: () => {this.props.player.addToPlaylist([item])},
+                title: item.title,
+            });
         }
 
         return (
@@ -136,13 +148,19 @@ class Library extends Component {
                     <MenuItem onTouchTap={this.addSelected}>Add</MenuItem>
                 </Drawer>
                 <Table multiSelectable={true} onRowSelection={(selectedRows) => {
+                    if (this._shouldAddUpLink()) {
+                        const upLinkIndex = selectedRows.indexOf(0);
+
+                        if (upLinkIndex !== -1) {
+                            selectedRows.splice(upLinkIndex, 1);
+                        }
+                    }
                     this.setState({selectedRows: selectedRows});
                 }}>
                     <TableBody displayRowCheckbox={false}>
-                        {items}
+                        {this.renderingItems}
                     </TableBody>
                 </Table>
-
             </div>
             </MuiThemeProvider>
         );

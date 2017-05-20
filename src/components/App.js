@@ -42,6 +42,8 @@ class App extends Component {
 
                     <div className="App-view">
                         <Library
+                            match={this.props.match}
+                            history={this.props.history}
                             player={this.player}
                             hidden={view !== views.library}/>
 

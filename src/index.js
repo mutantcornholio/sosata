@@ -19,7 +19,7 @@ ReactDOM.render(
     <Router history={history}>
         <div>
             <Route exact path="/" component={App}/>
-            <Route path="/view/:view" component={App}/>
+            <Route path="/view/:view/:deeperPath*" component={App}/>
             <Route path="/LastFMCloser" component={LastFMCloser}/>
         </div>
     </Router>,

@@ -12,6 +12,7 @@
   - [x] Add
   - [ ] Add after current track
   - [ ] Add after current album
+- [x] Pushing library changes to history
 
 **Playlist**:
 - [x] Drawing current playlist
