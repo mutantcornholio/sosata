@@ -30,6 +30,10 @@ class Playlist extends Component {
         });
     }
 
+    removeSelected = () => {
+        this.props.player.removeFromPlaylist(this.state.selectedRows);
+    };
+
     render() {
         let lines = [];
 
@@ -51,7 +55,7 @@ class Playlist extends Component {
                     position: 'fixed',
                     zIndex: 1
                 }} >
-                    <MenuItem onTouchTap={()=>{console.log('zalupa')}}>Add</MenuItem>
+                    <MenuItem onTouchTap={this.removeSelected}>Remove</MenuItem>
                 </Drawer>
                 <Table multiSelectable={true} onRowSelection={(selectedRows) => {
                     this.setState({selectedRows: selectedRows});

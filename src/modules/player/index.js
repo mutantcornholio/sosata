@@ -81,6 +81,14 @@ export class Player {
         this._popAddQueue(items);
     }
 
+    removeFromPlaylist(indices) {
+        for (const index of indices) {
+            this._playlist.splice(index, 1);
+        }
+
+        PubSub.publish(events.PLAYLIST_CHANGED);
+    }
+
     _popAddQueue = (prevResult) => {
         if (prevResult instanceof Array) {
             this._addQueue = prevResult.concat(this._addQueue);

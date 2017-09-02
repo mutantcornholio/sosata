@@ -221,6 +221,33 @@ describe('Player', () => {
         });
     });
 
+    describe('.removeFromPlaylist', () => {
+        it('should remove items on passed indices, while other should stay in place', () => {
+            fakeAudio = new Audio();
+            const player = new Player(fakeAudio);
+
+            player.addToPlaylist([fakeTracks[0], fakeTracks[1], fakeTracks[2]]);
+            player.removeFromPlaylist([1]);
+            expect(player.getPlaylist()).toEqual([fakeTracks[0], fakeTracks[2]]);
+
+            player.addToPlaylist([fakeTracks[0], fakeTracks[1], fakeTracks[2]]);
+            player.removeFromPlaylist([1,3]);
+            expect(player.getPlaylist()).toEqual([fakeTracks[0], fakeTracks[0], fakeTracks[1]]);
+        });
+
+        it('should publish event after removal', done => {
+            fakeAudio = new Audio();
+            const player = new Player(fakeAudio);
+
+            player.addToPlaylist([fakeTracks[0], fakeTracks[1], fakeTracks[2]]);
+
+            setTimeout(() => {
+                testSubscription = PubSub.subscribe(events.PLAYLIST_CHANGED, done);
+                player.removeFromPlaylist([1]);
+            }, 0);
+        });
+    });
+
     describe('.play', () => {
         let player;
 
