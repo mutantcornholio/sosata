@@ -12,21 +12,30 @@ import PubSub from 'pubsub-js';
 class Playlist extends Component {
     state = {
         items: [],
-        selectedRows: []
+        selectedRows: [],
+        currentTrack: -1
     };
 
     componentDidMount() {
         this.updatePlaylist();
-        this.updateToketn = PubSub.subscribe(events.PLAYLIST_CHANGED, this.updatePlaylist.bind(this));
+        this.playlistUpdateToken = PubSub.subscribe(events.PLAYLIST_CHANGED, this.updatePlaylist.bind(this));
+        this.playbackUpdateToken = PubSub.subscribe(events.PLAYBACK_CHANGED, this.updateCurrentTrack.bind(this));
     }
 
     componentWillUnmount() {
-        PubSub.unsubscribe(this.updateToketn);
+        PubSub.unsubscribe(this.playlistUpdateToken);
+        PubSub.unsubscribe(this.playbackUpdateToken);
     }
 
     updatePlaylist() {
         this.setState({
             items: this.props.player.getPlaylist()
+        });
+    }
+
+    updateCurrentTrack() {
+        this.setState({
+            currentTrack: this.props.player.currentTrack()
         });
     }
 
@@ -43,6 +52,7 @@ class Playlist extends Component {
                 key={index}
                 index={index}
                 selected={this.state.selectedRows.indexOf(index) !== -1}
+                isCurrent={this.state.currentTrack === index}
                 data={item} />);
         }
 
