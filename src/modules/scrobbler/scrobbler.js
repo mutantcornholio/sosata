@@ -1,10 +1,6 @@
 import config from '../../config.js'
 import md5 from 'md5'
-
-export const LOCAL_STORAGE_KEYS = {
-    scrobblerSessionKey: 'scrobblerSessionKey',
-    scrobblingQueue: 'scrobblingQueue',
-};
+import {LOCAL_STORAGE_KEYS} from '../localStorageKeys';
 
 export const LAST_FM_API_PATH = 'http://ws.audioscrobbler.com/2.0';
 

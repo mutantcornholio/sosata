@@ -3,6 +3,7 @@ import config from '../../config.js'
 import * as Exceptions from './exceptions.js';
 import $ from 'jquery';
 import Scrobbler from '../scrobbler/scrobbler';
+import {LOCAL_STORAGE_KEYS} from "../localStorageKeys";
 
 export let player = {};
 
@@ -29,6 +30,7 @@ export class Player {
         this._audioElement.addEventListener('ended', this._handleTrackEnd.bind(this));
         this.scrobbler = new Scrobbler();
 
+        this._loadFromLS();
         PubSub.subscribe(events.PLAYLIST_CHANGED, this._handlePlaylistChange);
 
         setInterval(this._playtick, 1000);
@@ -47,6 +49,8 @@ export class Player {
         if (this._currentTrackId === -1) {
             this._ensureTrackId(0);
         }
+
+        this._saveToLS();
     };
 
     _handleTrackEnd() {
@@ -87,6 +91,27 @@ export class Player {
         }
 
         PubSub.publish(events.PLAYLIST_CHANGED);
+    }
+
+    _saveToLS() {
+        localStorage.setItem(LOCAL_STORAGE_KEYS.currentPlaylist, JSON.stringify(this._playlist));
+    }
+
+    _loadFromLS() {
+        const playlist = localStorage.getItem(LOCAL_STORAGE_KEYS.currentPlaylist);
+
+        if (playlist) {
+            try {
+                this._playlist = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEYS.currentPlaylist));
+                PubSub.publish(events.PLAYLIST_CHANGED);
+            } catch (e) {
+                if (typeof jest === 'undefined') {
+                    console.error(e);
+                }
+
+                localStorage.removeItem(LOCAL_STORAGE_KEYS.currentPlaylist);
+            }
+        }
     }
 
     _popAddQueue = (prevResult) => {

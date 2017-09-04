@@ -5,6 +5,7 @@ import config from '../../config.js'
 import * as Exceptions from './exceptions.js';
 import $ from 'jquery';
 import mockjax from 'jquery-mockjax';
+import {LOCAL_STORAGE_KEYS} from '../localStorageKeys';
 mockjax($, window);
 
 $.mockjaxSettings.logging = 0;
@@ -79,7 +80,7 @@ let fakeDirectories = [
 let fakeAudio;
 
 beforeAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 500;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1500;
 });
 
 
@@ -88,6 +89,8 @@ afterEach(() => {
     if (testSubscription) {
         PubSub.unsubscribe(testSubscription);
     }
+
+    localStorage.removeItem(LOCAL_STORAGE_KEYS.currentPlaylist);
 });
 
 describe('Player', () => {
@@ -99,6 +102,29 @@ describe('Player', () => {
         it('should create player with empty playlist', () => {
             let player = new Player(fakeAudio);
             expect(player.getPlaylist()).toEqual([]);
+        });
+
+        it('should restore playlist from local storage', () => {
+            localStorage.setItem(
+                LOCAL_STORAGE_KEYS.currentPlaylist,
+                JSON.stringify([fakeTracks[0], fakeTracks[1], fakeTracks[2]])
+            );
+
+            let player = new Player(fakeAudio);
+
+            expect(player.getPlaylist()).toEqual([fakeTracks[0], fakeTracks[1], fakeTracks[2]]);
+        });
+
+        it('should remove invalid playlist from local storage', () => {
+            localStorage.setItem(
+                LOCAL_STORAGE_KEYS.currentPlaylist,
+                'life sucks'
+            );
+
+            let player = new Player(fakeAudio);
+
+            expect(player.getPlaylist()).toEqual([]);
+            expect(localStorage.getItem(LOCAL_STORAGE_KEYS.currentPlaylist)).toEqual(undefined);
         });
     });
 
@@ -117,6 +143,20 @@ describe('Player', () => {
         it('should add track to playlist', () => {
             player.addToPlaylist([fakeTracks[0]]);
             expect(player.getPlaylist()).toEqual([fakeTracks[0]]);
+        });
+
+        it('should save playlist to localstrorage', done => {
+            player.addToPlaylist([fakeTracks[0], fakeTracks[1]]);
+
+            setTimeout(() => {
+                expect(
+                    localStorage.getItem(LOCAL_STORAGE_KEYS.currentPlaylist)
+                ).toEqual(
+                    JSON.stringify([fakeTracks[0], fakeTracks[1]])
+                );
+
+                done();
+            }, 10);
         });
 
         it('should add multiple tracks to playlist', () => {
@@ -434,6 +474,8 @@ describe('Player', () => {
             jest.runTimersToTime(215 * 1000);
 
             expect(player.scrobbler.scrobble).toHaveBeenCalledWith(fakeTracks[0], jasmine.anything());
-        })
+        });
     });
+
+
 });

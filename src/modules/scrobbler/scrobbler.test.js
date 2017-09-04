@@ -1,6 +1,7 @@
-import {Scrobbler, LOCAL_STORAGE_KEYS, LAST_FM_API_PATH} from './scrobbler';
+import {Scrobbler, LAST_FM_API_PATH} from './scrobbler';
 import config from '../../config.js'
 import fetchMock from 'fetch-mock';
+import {LOCAL_STORAGE_KEYS} from '../localStorageKeys';
 
 const fakeTracks = [{
     "album": "erroor",
@@ -409,7 +410,6 @@ describe('scrobbler', () => {
                 name: 'scrobble',
                 method: 'POST',
                 response: (options) => {
-                    console.log(options);
                     if (!failedOnce) {
                         failedOnce = true;
 

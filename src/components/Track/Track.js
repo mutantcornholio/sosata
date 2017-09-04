@@ -9,12 +9,13 @@ class Track extends DoubleClickableTableRow {
         const style = {height: '32px'};
 
         if (props.isCurrent) {
-            style['font-weight'] = 'bold';
+            style.fontWeight = 'bold';
         }
 
         delete props.data;
         delete props.player;
         delete props.index;
+        delete props.isCurrent;
 
         return (
             <DoubleClickableTableRow

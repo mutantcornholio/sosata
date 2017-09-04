@@ -20,17 +20,17 @@
 - [x] Selecting
 - [ ] Track duration
 - [ ] Play selected
-- [ ] Delete selected from playlist
+- [x] Delete selected from playlist
 - [ ] Changing order
-- [ ] Currently playing track focus
+- [x] Currently playing track focus
 - [ ] Album grouping
 - [ ] Saving playlist to localstorage
 - [ ] Share track
 - [ ] Download track
-- [ ] Loading from localstorage
-  - [ ] Load on startup
-  - [ ] Check tracks
- 
+- [x] Loading from localstorage
+  - [x] Load on startup
+  - [ ] Current track index
+
 **Playback:**
 - [x] Play/Pause
 - [x] Next/Prev
@@ -55,6 +55,7 @@
 - [x] Scrobbling
   - [x] Basic
   - [x] Save queue to localstorage
+  - [ ] Check if last.fm is connected on scrobble attempt
 - [ ] Now playing
 - [ ] Love
   - [ ] Love / unlove track from playback panel
