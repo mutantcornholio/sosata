@@ -242,20 +242,20 @@ describe('Player', () => {
         });
 
         it('should publish event on adding track to playlist', (done) => {
-            testSubscription = PubSub.subscribe(events.PLAYLIST_CHANGED, done);
+            testSubscription = PubSub.subscribe(events.PLAYLIST_CHANGED, () => done());
 
             player.addToPlaylist([fakeTracks[0]]);
         });
 
         it('should publish event on adding directories to playlist', (done) => {
             $.mockjax({
-                url: `http://${config.host}/library/tags/jungle/Aphrodite/index.json`,
+                url: `http://${config.host}/library/tags%2Fjungle%2FAphrodite/index.json`,
                 contentType: 'application/json',
                 dataType: 'json',
                 responseText: {track: fakeTracks[2]}
             });
 
-            testSubscription = PubSub.subscribe(events.PLAYLIST_CHANGED, done);
+            testSubscription = PubSub.subscribe(events.PLAYLIST_CHANGED, () => done());
 
             player.addToPlaylist([fakeDirectories[0]]);
         });
@@ -282,7 +282,7 @@ describe('Player', () => {
             player.addToPlaylist([fakeTracks[0], fakeTracks[1], fakeTracks[2]]);
 
             setTimeout(() => {
-                testSubscription = PubSub.subscribe(events.PLAYLIST_CHANGED, done);
+                testSubscription = PubSub.subscribe(events.PLAYLIST_CHANGED, () => done());
                 player.removeFromPlaylist([1]);
             }, 0);
         });
@@ -311,7 +311,7 @@ describe('Player', () => {
         });
 
         it('should publish event', (done) => {
-            testSubscription = PubSub.subscribe(events.PLAYBACK_CHANGED, done);
+            testSubscription = PubSub.subscribe(events.PLAYBACK_CHANGED, () => done());
             player.play();
         });
 
@@ -356,7 +356,7 @@ describe('Player', () => {
         });
 
         it('should publish event', (done) => {
-            testSubscription = PubSub.subscribe(events.PLAYBACK_CHANGED, done);
+            testSubscription = PubSub.subscribe(events.PLAYBACK_CHANGED, () => done());
             player.switchTo(1);
         });
     });
@@ -382,7 +382,7 @@ describe('Player', () => {
         });
 
         it('should publish event', (done) => {
-            testSubscription = PubSub.subscribe(events.PLAYBACK_CHANGED, done);
+            testSubscription = PubSub.subscribe(events.PLAYBACK_CHANGED, () => done());
             player.next(1);
         });
 
@@ -414,7 +414,7 @@ describe('Player', () => {
         });
 
         it('should publish event', (done) => {
-            testSubscription = PubSub.subscribe(events.PLAYBACK_CHANGED, done);
+            testSubscription = PubSub.subscribe(events.PLAYBACK_CHANGED, () => done());
             player.prev(1);
         });
 
