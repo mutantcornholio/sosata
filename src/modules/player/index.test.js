@@ -270,9 +270,10 @@ describe('Player', () => {
             player.removeFromPlaylist([1]);
             expect(player.getPlaylist()).toEqual([fakeTracks[0], fakeTracks[2]]);
 
+            // should be 0, 2, 0, 1, 2
             player.addToPlaylist([fakeTracks[0], fakeTracks[1], fakeTracks[2]]);
             player.removeFromPlaylist([1,3]);
-            expect(player.getPlaylist()).toEqual([fakeTracks[0], fakeTracks[0], fakeTracks[1]]);
+            expect(player.getPlaylist()).toEqual([fakeTracks[0], fakeTracks[0], fakeTracks[2]]);
         });
 
         it('should publish event after removal', done => {

@@ -85,8 +85,23 @@ export class Player {
         this._popAddQueue(items);
     }
 
+    getPosition() {
+        return this._audioElement.currentTime;
+    }
+
+    seek(position) {
+        this._audioElement.currentTime = position;
+        PubSub.publish(events.PLAYBACK_POSITION_CHANGED);
+    }
+
+    getDuration() {
+        return this._audioElement.duration;
+    }
+
     removeFromPlaylist(indices) {
-        for (const index of indices) {
+        const reverseIndices = indices.sort((a, b) => b - a);
+
+        for (const index of reverseIndices) {
             this._playlist.splice(index, 1);
         }
 
